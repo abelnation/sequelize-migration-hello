@@ -1,3 +1,4 @@
+const path = require('path');
 const child_process = require('child_process');
 const Promise = require('bluebird');
 const Sequelize = require('sequelize');
@@ -28,11 +29,12 @@ const umzug = new Umzug({
     storageOptions: {
         sequelize: sequelize,
     },
+
     // see: https://github.com/sequelize/umzug/issues/17
     migrations: {
         params: [
-            sequelize.getQueryInterface(),
-            sequelize.constructor,
+            sequelize.getQueryInterface(), // queryInterface
+            sequelize.constructor, // DataTypes
             function() {
                 throw new Error('Migration tried to use old style "done" callback. Please upgrade to "umzug" and return a promise instead.');
             }
@@ -57,10 +59,25 @@ umzug.on('reverting', logUmzugEvent('reverting'));
 umzug.on('reverted',  logUmzugEvent('reverted'));
 
 function cmdStatus() {
-    return Promise.props({
-        executed: umzug.executed(),
-        pending: umzug.pending(),
+    let result = {};
+
+    return umzug.executed()
+      .then(executed => {
+        result.executed = executed;
+        return umzug.pending();
+    }).then(pending => {
+        result.pending = pending;
+        return result;
     }).then(({ executed, pending }) => {
+
+        executed = executed.map(m => {
+            m.name = path.basename(m.file, '.js');
+            return m;
+        });
+        pending = pending.map(m => {
+            m.name = path.basename(m.file, '.js');
+            return m;
+        });
 
         const current = executed.length > 0 ? executed[0].file : '<NO_MIGRATIONS>';
         const status = {
@@ -70,34 +87,38 @@ function cmdStatus() {
         }
 
         console.log(JSON.stringify(status, null, 2))
+
+        return { executed, pending };
     })
 }
 
 function cmdMigrate() {
-    console.log('BEGINNING MIGRATION');
-    return umzug.up()
-        .then(migrations => {
-            console.log('==============');
-            console.log('MIGRATION DONE');
-            console.log(JSON.stringify(migrations.map(m => m.file), null, 2));
-        }).catch(err => {
-            console.log('===============');
-            console.log('MIGRATION ERROR');
-            console.log(err)
+    return umzug.up();
+}
+
+function cmdMigrateNext() {
+    return cmdStatus()
+        .then(({ executed, pending }) => {
+            if (pending.length === 0) {
+                return Promise.reject(new Error('No pending migrations'));
+            }
+            const next = pending[0].name;
+            return umzug.up({ to: next });
         })
 }
 
 function cmdReset() {
-    console.log('BEGINNING RESET');
-    return umzug.down()
-        .then(migrations => {
-            console.log('==========');
-            console.log('RESET DONE');
-            console.log(JSON.stringify(migrations.map(m => m.file), null, 2));
-        }).catch(err => {
-            console.log('===========');
-            console.log('RESET ERROR');
-            console.log(err)
+    return umzug.down({ to: 0 });
+}
+
+function cmdResetPrev() {
+    return cmdStatus()
+        .then(({ executed, pending }) => {
+            if (executed.length === 0) {
+                return Promise.reject(new Error('Already at initial state'));
+            }
+            const prev = executed[executed.length - 1].name;
+            return umzug.down({ to: prev });
         })
 }
 
@@ -105,10 +126,13 @@ function cmdHardReset() {
     return new Promise((resolve, reject) => {
         setImmediate(() => {
             try {
+                console.log(`dropdb ${ DB_NAME }`);
                 child_process.spawnSync(`dropdb ${ DB_NAME }`);
+                console.log(`createdb ${ DB_NAME } --username ${ DB_USER }`);
                 child_process.spawnSync(`createdb ${ DB_NAME } --username ${ DB_USER }`);
                 resolve();
             } catch (e) {
+                console.log(e);
                 reject(e);
             }
         });
@@ -116,28 +140,60 @@ function cmdHardReset() {
 }
 
 const cmd = process.argv[2].trim();
+let executedCmd;
+
+console.log(`${ cmd.toUpperCase() } BEGIN`);
 switch(cmd) {
     case 'status':
-        cmdStatus()
-            .then(() => process.exit(0));
+        executedCmd = cmdStatus();
         break;
 
+    case 'up':
     case 'migrate':
-        cmdStatus()
-            .then(() => cmdMigrate())
-            .then(() => process.exit(0))
+        executedCmd = cmdMigrate();
         break;
 
+    case 'next':
+    case 'migrate-next':
+        executedCmd = cmdMigrateNext();
+        break;
+
+    case 'down':
     case 'reset':
-        cmdReset()
-            .then(() => process.exit(0))
+        executedCmd = cmdReset();
         break;
 
-    case 'hard-reset':
-        cmdHardReset()
-            .then(() => process.exit(0))
+    case 'prev':
+    case 'reset-prev':
+        executedCmd = cmdResetPrev();
+        break;
+
+    case 'reset-hard':
+        executedCmd = cmdHardReset();
         break;
 
     default:
         console.log(`invalid cmd: ${ cmd }`);
+        process.exit(1);
 }
+
+executedCmd
+    .then((result) => {
+        const doneStr = `${ cmd.toUpperCase() } DONE`;
+        console.log(doneStr);
+        console.log("=".repeat(doneStr.length));
+    })
+    .catch(err => {
+        const errorStr = `${ cmd.toUpperCase() } ERROR`;
+        console.log(errorStr);
+        console.log("=".repeat(errorStr.length));
+        console.log(err);
+        console.log("=".repeat(errorStr.length));
+    })
+    .then(() => {
+        if (cmd !== 'status' && cmd !== 'reset-hard') {
+            return cmdStatus()
+        }
+        return Promise.resolve();
+    })
+    .then(() => process.exit(0))

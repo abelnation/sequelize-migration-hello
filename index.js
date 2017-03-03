@@ -1,6 +1,8 @@
 const _ = require('lodash');
 const express = require('express');
 const Sequelize = require('sequelize');
+const BodyParser = require('body-parser');
+
 const getModels = require('./models');
 
 const PORT = process.env.PORT || 8080;
@@ -38,7 +40,41 @@ function respondError(res, err) {
     });
 }
 
-// TODO: routes
+function describeSequelizeModel(modelName) {
+    const model = models[modelName];
+    if (!model) {
+        respondError(res, new Error(`Invalid modelName: ${ modelName }`))
+    }
+    return (req, res) => {
+        const attrs = _.reduce(model.rawAttributes, (result, attr, name) => {
+            result[name] = {
+                type: '' + attr.type,
+            };
+            return result;
+        }, {});
+        respondOk(res, attrs);
+    }
+}
+
+function describePostgresModel(modelName) {
+    const model = models[modelName];
+    if (!model) {
+        respondError(res, new Error(`Invalid modelName: ${ modelName }`))
+    }
+    return (req, res) => {
+        model.describe().then(desc => {
+            respondOk(res, desc);
+        }).catch(err => {
+            respondError(res, err);
+        })
+    }
+}
+
+// middleware
+
+app.use(BodyParser.json());
+
+// routes
 app.get('/test', (req, res) => {
     respondOk(res, { response: 'ok' });
 });
@@ -51,18 +87,17 @@ app.get('/users', (req, res) => {
     }).catch(err => {
         respondError(res, err)
     })
+});
+app.post('/users', (req, res) => {
+    const user = models.User.build(req.body);
+    user.save().then(() => {
+        respondOk(res, user);
+    }).catch(err => {
+        respondError(res, err);
+    })
 })
-app.get('/users/describe', (req, res) => {
-    console.log(models.User.rawAttributes);
-    const attrs = _.map(models.User.rawAttributes, (attr, name) => {
-        return {
-            name: name,
-            // type: attr.type.key,
-            type: '' + attr.type,
-        };
-    });
-    respondOk(res, attrs);
-})
+app.get('/users/dsql', describeSequelizeModel('User'))
+app.get('/users/dpg', describePostgresModel('User'))
 
 app.listen(PORT, function() {
 	console.log(`test server listening on port ${ PORT }`);

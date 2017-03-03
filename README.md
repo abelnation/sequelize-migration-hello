@@ -7,5 +7,5 @@ createuser sequelize_demo_admin --createdb --superuser
 createdb sequelize_migration_demo --username sequelize_demo_admin
 
 # Verify works
-psql sequelize_migration_demo sequelize_demo_admin
+psql -d sequelize_migration_demo -U sequelize_demo_admin
 ```
