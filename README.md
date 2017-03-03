@@ -37,13 +37,13 @@ supports the following commands:
 
 Execute a command via:
 
-```
+```shell
 node ./migrate.js <command>
 ```
 
 ## Full demo flow
 
-```
+```shell
 HOST="localhost:8080"
 GET="curl -H "Content-Type: application/json" -X GET"
 POST="curl -H "Content-Type: application/json" -X POST"
@@ -95,7 +95,7 @@ ${POST} ${HOST}/users -d '{"firstName":"Abel","lastName":"Allison"}'
 
 ## Setup
 
-```
+```shell
 # Create admin-user and db
 createuser sequelize_demo_admin --createdb --superuser
 createdb sequelize_migration_demo --username sequelize_demo_admin
