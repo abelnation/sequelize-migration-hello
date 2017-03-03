@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         eyeColor: {
             type: DataTypes.ENUM('unspecified', 'green', 'blue', 'hazel'),
+            defaultValue: 'unspecified',
             allowNull: false,
         }
     }, {
