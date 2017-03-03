@@ -1,0 +1,29 @@
+{
+  "name": "sequelize-migration-hello",
+  "version": "1.0.0",
+  "description": "Testing of db migrations",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abelnation/sequelize-migration-hello.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/abelnation/sequelize-migration-hello/issues"
+  },
+  "homepage": "https://github.com/abelnation/sequelize-migration-hello#readme",
+  "dependencies": {
+    "bluebird": "^3.4.7",
+    "express": "^4.15.0",
+    "lodash": "^4.17.4",
+    "nodemon": "^1.11.0",
+    "pg": "^6.1.2",
+    "sequelize": "^3.30.2",
+    "umzug": "^1.11.0"
+  }
+}
