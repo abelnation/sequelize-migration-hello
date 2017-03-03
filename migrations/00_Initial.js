@@ -10,10 +10,12 @@ module.exports = {
                 autoIncrement: true
             },
             firstName: {
-                type: DataTypes.TEXT
+                type: DataTypes.TEXT,
+                allowNull: false,
             },
             lastName: {
-                type: DataTypes.TEXT
+                type: DataTypes.TEXT,
+                allowNull: false,
             },
             createdAt: {
                 type: DataTypes.DATE,

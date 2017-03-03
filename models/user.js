@@ -9,10 +9,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.TEXT,
             allowNull: false,
         },
-        eyeColor: {
-            type: DataTypes.ENUM('unspecified', 'green', 'blue', 'hazel'),
-            allowNull: false,
-        }
     }, {
         freezeTableName: true,
     });
