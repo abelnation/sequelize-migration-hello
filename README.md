@@ -11,11 +11,11 @@ ensuring backwards compatibility each step of the way.
 
 The repo demonstrates 5 steps.
 
-1) Initial Setup (branch: `01-initial`)
-2) DB: Add column with default value (branch: `02-addCol`)
-3) App: Support column in data model, enforce validation (branch: `03-app-support-added`)
-4) DB: Remove default value, require value (branch: `04-lock-down-db`)
-5) App: Remove default value (branch: `05-lock-down-app`)
+1. Initial Setup (branch: `01-initial`)
+2. DB: Add column with default value (branch: `02-addCol`)
+3. App: Support column in data model, enforce validation (branch: `03-app-support-added`)
+4. DB: Remove default value, require value (branch: `04-lock-down-db`)
+5. App: Remove default value (branch: `05-lock-down-app`)
 
 The repo comes with a helper script for executing migration steps: `migrate.js`.  It
 supports the following commands:
