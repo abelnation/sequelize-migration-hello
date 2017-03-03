@@ -10,6 +10,7 @@ a database migration that can be applied while production code is running in the
 ensuring backwards compatibility each step of the way.
 
 The repo demonstrates 5 steps.
+
 1) Initial Setup (branch: `01-initial`)
 2) DB: Add column with default value (branch: `02-addCol`)
 3) App: Support column in data model, enforce validation (branch: `03-app-support-added`)
@@ -18,12 +19,13 @@ The repo demonstrates 5 steps.
 
 The repo comes with a helper script for executing migration steps: `migrate.js`.  It
 supports the following commands:
-`status`: print current migration status
-`up/migrate`: executed all unexecuted migrations
-`down/reset`: revert all executed migrations
-`next/migrate-next`: execute the next pending migration
-`prev/reset-prev`: revert the previous executed migration
-`reset-hard`: reset the database using a `dropdb`/`createdb` postgres command
+
+- `status`: print current migration status
+- `up/migrate`: executed all unexecuted migrations
+- `down/reset`: revert all executed migrations
+- `next/migrate-next`: execute the next pending migration
+- `prev/reset-prev`: revert the previous executed migration
+- `reset-hard`: reset the database using a `dropdb`/`createdb` postgres command
 
 Execute a command via:
 
