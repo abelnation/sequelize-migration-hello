@@ -9,6 +9,9 @@ changes that accompany the migration each step of the way.  The emphasis is on d
 a database migration that can be applied while production code is running in the wild,
 ensuring backwards compatibility each step of the way.
 
+A simple web server is provided that allows you to interact with the app at each step
+of the way via simple get/post requests.
+
 The repo demonstrates 5 steps.
 
 1. Initial Setup (branch: `01-initial`)
